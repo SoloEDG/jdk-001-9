@@ -355,6 +355,92 @@ body {
   margin-top: 0.35rem;
 }
 
+.replace-panel .replace-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.8rem;
+}
+
+.replace-panel .row-label {
+  color: var(--muted);
+  flex-shrink: 0;
+  width: 3.2rem;
+}
+
+.replace-panel input[type='color'] {
+  width: 2.2rem;
+  height: 1.7rem;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.replace-panel code {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.replace-panel .mini {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.replace-panel .mini:hover {
+  border-color: var(--accent-dim);
+}
+
+.replace-panel .swatch-preview {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.replace-panel .swatch-preview.transparent {
+  background: repeating-conic-gradient(#3a3f4b 0% 25%, #23272f 0% 50%) 0 0 / 8px 8px;
+}
+
+.replace-check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+  cursor: pointer;
+}
+
+.replace-panel .scope-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.replace-count {
+  margin: 0.25rem 0 0.35rem;
+}
+
+.replace-count strong {
+  color: var(--accent);
+}
+
+.replace-count .warn {
+  color: var(--danger);
+}
+
+.replace-done {
+  margin: 0.35rem 0 0;
+  color: var(--accent);
+}
+
 @media (max-width: 1100px) {
   .app-shell {
     grid-template-columns: 1fr;

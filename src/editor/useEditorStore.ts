@@ -2,7 +2,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { CANVAS_SIZES } from '../core/constants'
 import { exportAllFramesPng, exportFramePng } from '../core/exportPng'
 import { addCustomColor, pushRecentColor } from '../core/paletteService'
-import { compositeLayers } from '../core/pixelGrid'
+import { colorsMatch, compositeLayers, countColorInLayers, replaceColorInLayers } from '../core/pixelGrid'
 import { createProject } from '../core/projectFactory'
 import {
   ensureDefaultProject,
@@ -13,7 +13,7 @@ import {
   saveProjects,
   upsertProject,
 } from '../core/storage'
-import type { CanvasSize, PixelProject, ToolType } from '../core/types'
+import type { CanvasSize, Pixel, PixelProject, ToolType } from '../core/types'
 import { createAnimationPlayer } from './animationPlayer'
 import {
   addFrameToProject,
@@ -243,6 +243,61 @@ function addCustomPaletteColor(color: string) {
   setActiveColor(color)
 }
 
+export type ReplaceScope = 'layer' | 'frame' | 'all'
+
+/** How many pixels matching `target` would change under the given scope. */
+function countReplaceablePixels(target: string, scope: ReplaceScope): number {
+  const p = activeProject.value
+  if (!p) return 0
+  if (scope === 'all') {
+    return p.frames.reduce((sum, frame) => sum + countColorInLayers(frame.layers, target), 0)
+  }
+  const frame = p.frames[p.activeFrameIndex]
+  if (!frame) return 0
+  if (scope === 'frame') return countColorInLayers(frame.layers, target)
+  const layer = frame.layers[p.activeLayerIndex]
+  return layer ? countColorInLayers([layer], target) : 0
+}
+
+/**
+ * Replace every pixel matching `target` with `replacement` (null = transparent)
+ * within the scope. Returns the number of pixels changed.
+ * If the old color still appears in recent/custom palettes, the new color is
+ * recorded there too, so canvas, palettes and exports stay consistent.
+ */
+function replaceColor(target: string, replacement: Pixel, scope: ReplaceScope): number {
+  const affected = countReplaceablePixels(target, scope)
+  if (affected === 0) return 0
+  player.stop()
+  previewFrameIndex.value = null
+  mutateProject((p) => {
+    const frames = p.frames.map((frame, frameIndex) => {
+      if (scope !== 'all' && frameIndex !== p.activeFrameIndex) return frame
+      if (scope === 'layer') {
+        const layers = frame.layers.map((layer, layerIndex) =>
+          layerIndex === p.activeLayerIndex
+            ? replaceColorInLayers([layer], target, replacement)[0]!
+            : layer,
+        )
+        return { ...frame, layers }
+      }
+      return { ...frame, layers: replaceColorInLayers(frame.layers, target, replacement) }
+    })
+
+    let { recentColors, customColors } = p
+    if (replacement !== null) {
+      if (recentColors.some((c) => colorsMatch(c, target))) {
+        recentColors = pushRecentColor(recentColors, replacement)
+      }
+      if (customColors.some((c) => colorsMatch(c, target))) {
+        customColors = addCustomColor(customColors, replacement)
+      }
+    }
+    return { ...p, frames, recentColors, customColors }
+  })
+  return affected
+}
+
 function exportCurrentFrame() {
   const p = activeProject.value
   const frame = activeFrame.value
@@ -288,6 +343,8 @@ function buildEditorStore() {
     loadProject,
     deleteProject,
     addCustomPaletteColor,
+    countReplaceablePixels,
+    replaceColor,
     exportCurrentFrame,
     exportAllFrames,
   })

@@ -91,6 +91,36 @@ export function drawLine(
   return next
 }
 
+/** Count pixels matching `target` across the given layers (case-insensitive). */
+export function countColorInLayers(layers: Layer[], target: string): number {
+  let count = 0
+  for (const layer of layers) {
+    for (const pixel of layer.pixels) {
+      if (pixel !== null && colorsMatch(pixel, target)) count += 1
+    }
+  }
+  return count
+}
+
+/** Replace every pixel matching `target` with `replacement` (null = transparent). */
+export function replaceColorInLayers(
+  layers: Layer[],
+  target: string,
+  replacement: Pixel,
+): Layer[] {
+  return layers.map((layer) => {
+    let changed = false
+    const pixels = layer.pixels.map((pixel) => {
+      if (pixel !== null && colorsMatch(pixel, target)) {
+        changed = true
+        return replacement
+      }
+      return pixel
+    })
+    return changed ? { ...layer, pixels } : layer
+  })
+}
+
 /** Bottom-to-top composite of visible layers for display and eyedropper. */
 export function compositeLayers(layers: Layer[], size: number): Pixel[] {
   const result = createEmptyGrid(size)

@@ -3,6 +3,7 @@ import { CANVAS_SIZES } from '../core/constants'
 import type { ToolType } from '../core/types'
 import { useEditorStore } from '../editor/useEditorStore'
 import PalettePanel from './PalettePanel.vue'
+import ReplaceColorPanel from './ReplaceColorPanel.vue'
 
 const store = useEditorStore()
 
@@ -59,6 +60,8 @@ const tools: { id: ToolType; label: string; hint: string }[] = [
     </section>
 
     <PalettePanel />
+
+    <ReplaceColorPanel />
 
     <section class="panel export-panel">
       <h3>导出</h3>
